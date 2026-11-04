@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla Docente</title>
+    <style>
+        /* Estilo básico */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6A11CB, #2575FC);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .docente-container {
+            background: #fff;
+            color: #333;
+            width: 80%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .docente-container h1 {
+            text-align: center;
+            color: #2575FC;
+        }
+
+        .docente-container form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .docente-container form input,
+        .docente-container form select,
+        .docente-container form button {
+            width: calc(50% - 10px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .docente-container form button {
+            width: 100%;
+            background: #2575FC;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .docente-container form button:hover {
+            background: #6A11CB;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background: #2575FC;
+            color: #fff;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #f2f2f2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        table button {
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button.edit {
+            background: #28A745;
+            color: #fff;
+        }
+
+        button.edit:hover {
+            background: #218838;
+        }
+
+        button.delete {
+            background: #E74C3C;
+            color: #fff;
+        }
+
+        button.delete:hover {
+            background: #C0392B;
+        }
+
+        button.logout {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background: #6A11CB;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button.logout:hover {
+            background: #2575FC;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla Docente -->
+    <div class="docente-container hidden" id="docenteContainer">
+        <h1>Bienvenido, Docente</h1>
+        <form id="docenteForm" onsubmit="agregarClase(event)">
+            <input type="text" id="materia" placeholder="Materia" required>
+            <input type="text" id="docente" placeholder="Docente" required>
+            <select id="dia" required>
+                <option value="" disabled selected>Seleccione el día</option>
+                <option value="Lunes">Lunes</option>
+                <option value="Martes">Martes</option>
+                <option value="Miércoles">Miércoles</option>
+                <option value="Jueves">Jueves</option>
+                <option value="Viernes">Viernes</option>
+                <option value="Sábado">Sábado</option>
+                <option value="Domingo">Domingo</option>
+            </select>
+            <select id="horaInicio" required>
+                <option value="" disabled selected>Seleccione la hora de inicio</option>
+            </select>
+            <select id="horaFin" required>
+                <option value="" disabled selected>Seleccione la hora fin</option>
+            </select>
+            <input type="text" id="aula" placeholder="Aula" required>
+            <button type="submit">Agregar Clase</button>
+        </form>
+        
+        <table id="tablaMaterias">
+            <thead>
+                <tr>
+                    <th>Materia</th>
+                    <th>Docente</th>
+                    <th>Día</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                    <th>Aula</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button class="logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        // Cargar las horas de inicio y fin en los selectores
+        const horaInicioSelect = document.getElementById("horaInicio");
+        const horaFinSelect = document.getElementById("horaFin");
+        for (let i = 7; i <= 22; i++) {
+            horaInicioSelect.innerHTML += `<option value="${i}:00">${i}:00</option>`;
+            horaFinSelect.innerHTML += `<option value="${i}:00">${i}:00</option>`;
+        }
+
+        window.onload = function () {
+            // Mostrar el contenedor del docente
+            const docenteContainer = document.getElementById("docenteContainer");
+            docenteContainer.classList.remove("hidden");
+            
+            // Cargar las clases guardadas
+            cargarClases();
+        };
+
+        // Función para cargar las clases desde el almacenamiento local
+        function cargarClases() {
+            const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+            const tbody = document.getElementById("tablaMaterias").querySelector("tbody");
+            clases.forEach(clase => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${clase.materia}</td>
+                    <td>${clase.docente}</td>
+                    <td>${clase.dia}</td>
+                    <td>${clase.horaInicio}</td>
+                    <td>${clase.horaFin}</td>
+                    <td>${clase.aula}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="edit" onclick="editarClase(this)">Editar</button>
+                            <button class="delete" onclick="eliminarClase(this)">Eliminar</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Función para generar un ID único
+function generarIdUnico() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Función para agregar una nueva clase
+function agregarClase(event) {
+    event.preventDefault();
+    const materia = document.getElementById("materia").value.trim();
+    const docente = document.getElementById("docente").value.trim();
+    const dia = document.getElementById("dia").value;
+    const horaInicio = document.getElementById("horaInicio").value;
+    const horaFin = document.getElementById("horaFin").value;
+    const aula = document.getElementById("aula").value.trim();
+
+    // Validar solapamiento
+    const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+    const solapamiento = clases.some(clase => 
+        clase.dia === dia && 
+        ((horaInicio >= clase.horaInicio && horaInicio < clase.horaFin) || 
+        (horaFin > clase.horaInicio && horaFin <= clase.horaFin) || 
+        (horaInicio <= clase.horaInicio && horaFin >= clase.horaFin))
+    );
+
+    if (solapamiento) {
+        alert("No puedes agregar una clase que se solape con otra en el mismo día y horario.");
+        return;
+    }
+
+    if (materia && docente && dia && horaInicio && horaFin && aula) {
+        const nuevaClase = { id: generarIdUnico(), materia, docente, dia, horaInicio, horaFin, aula };
+
+        // Guardar en el almacenamiento local
+        const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+        clases.push(nuevaClase);
+        localStorage.setItem("clases", JSON.stringify(clases));
+
+        // Actualizar la tabla
+        agregarFilaTabla(nuevaClase);
+
+        // Limpiar el formulario
+        document.getElementById("docenteForm").reset();
+    }
+}
+
+// Función para agregar una fila a la tabla
+function agregarFilaTabla(clase) {
+    const tbody = document.getElementById("tablaMaterias").querySelector("tbody");
+    const row = document.createElement("tr");
+    row.dataset.id = clase.id;
+    row.innerHTML = `
+        <td>${clase.materia}</td>
+        <td>${clase.docente}</td>
+        <td>${clase.dia}</td>
+        <td>${clase.horaInicio}</td>
+        <td>${clase.horaFin}</td>
+        <td>${clase.aula}</td>
+        <td>
+            <div class="action-buttons">
+                <button class="edit" onclick="editarClase(this)">Editar</button>
+                <button class="delete" onclick="eliminarClase(this)">Eliminar</button>
+            </div>
+        </td>
+    `;
+    tbody.appendChild(row);
+}
+
+// Función para cargar las clases desde el almacenamiento local
+function cargarClases() {
+    const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+    clases.forEach(clase => agregarFilaTabla(clase));
+}
+
+// Función para eliminar una clase
+function eliminarClase(button) {
+    if (confirm("¿Está seguro de que desea eliminar esta clase?")) {
+        const row = button.parentElement.parentElement.parentElement;
+        const id = row.dataset.id;
+
+        // Eliminar del almacenamiento local
+        const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+        const nuevaListaClases = clases.filter(clase => clase.id !== id);
+        localStorage.setItem("clases", JSON.stringify(nuevaListaClases));
+
+        // Eliminar la fila de la tabla
+        row.remove();
+    }
+}
+
+// Función para editar una clase
+function editarClase(button) {
+    const row = button.parentElement.parentElement.parentElement;
+    const cells = row.querySelectorAll("td");
+    const id = row.dataset.id;
+
+    // Obtener los valores actuales de la fila
+    const materia = cells[0].innerText;
+    const docente = cells[1].innerText;
+    const dia = cells[2].innerText;
+    const horaInicio = cells[3].innerText;
+    const horaFin = cells[4].innerText;
+    const aula = cells[5].innerText;
+
+    // Cargar los valores actuales en el formulario
+    document.getElementById("materia").value = materia;
+    document.getElementById("docente").value = docente;
+    document.getElementById("dia").value = dia;
+    document.getElementById("horaInicio").value = horaInicio;
+    document.getElementById("horaFin").value = horaFin;
+    document.getElementById("aula").value = aula;
+
+    // Cambiar el texto del botón de agregar
+    const submitButton = document.querySelector("#docenteForm button[type='submit']");
+    submitButton.textContent = "Guardar Cambios";
+
+    // Actualizar el evento del botón
+    submitButton.onclick = function (event) {
+        event.preventDefault();
+
+        // Actualizar los valores en la tabla
+        cells[0].innerText = document.getElementById("materia").value.trim();
+        cells[1].innerText = document.getElementById("docente").value.trim();
+        cells[2].innerText = document.getElementById("dia").value;
+        cells[3].innerText = document.getElementById("horaInicio").value;
+        cells[4].innerText = document.getElementById("horaFin").value;
+        cells[5].innerText = document.getElementById("aula").value.trim();
+
+        // Actualizar en el almacenamiento local
+        const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+        const index = clases.findIndex(clase => clase.id === id);
+        if (index !== -1) {
+            clases[index] = {
+                id,
+                materia: cells[0].innerText,
+                docente: cells[1].innerText,
+                dia: cells[2].innerText,
+                horaInicio: cells[3].innerText,
+                horaFin: cells[4].innerText,
+                aula: cells[5].innerText
+            };
+            localStorage.setItem("clases", JSON.stringify(clases));
+        }
+
+        // Restaurar el formulario y el botón
+        submitButton.textContent = "Agregar Clase";
+        submitButton.onclick = agregarClase;
+        document.getElementById("docenteForm").reset();
+    };
+}
+
+// Función para cerrar sesión
+function logout() {
+    const confirmLogout = confirm("¿Estás seguro de que deseas cerrar sesión?");
+    if (confirmLogout) {
+        alert("Has cerrado sesión correctamente.");
+        // Redirigir a la página de inicio de sesión (login.html)
+        window.location.href = "login.html";
+    } else {
+        // Si cancelan, no se realiza ninguna acción
+        alert("Cierre de sesión cancelado.");
+    }
+}
+
+
+
+
+
+    </script>
+</body>
+</html>

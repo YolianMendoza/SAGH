@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla Estudiante</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+    
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+    
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+    
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+    
+        td {
+            background-color: #f9f9f9;
+        }
+    
+/* Contenedor para alinear los botones */
+.boton-contenedor {
+    display: flex;
+    flex-direction: column; /* Alineación vertical */
+    gap: 10px; /* Espacio entre los botones */
+}
+
+/* Estilo general para botones */
+button {
+    padding: 10px;
+    width: 120px; /* Ancho uniforme */
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Botón "Agregar Clase" */
+.btn-agregar {
+    background-color: #28a745; /* Verde */
+    color: #fff;
+}
+
+.btn-agregar:hover {
+    background-color: #218838; /* Verde más oscuro */
+}
+
+/* Botón "Eliminar Clase" */
+.btn-eliminar {
+    background-color: #dc3545; /* Rojo */
+    color: #fff;
+}
+
+.btn-eliminar:hover {
+    background-color: #c82333; /* Rojo más oscuro */
+}
+
+/* Efecto al presionar */
+button:active {
+    transform: scale(0.95);
+}
+    
+        .logout {
+            margin-top: 20px;
+            display: block;
+            width: 100%;
+            font-size: 16px;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+    
+        .logout:hover {
+            background-color: #0056b3;
+        }
+    
+        .hidden {
+            display: none;
+        }
+
+        /* Barra de búsqueda */
+#searchBar {
+    width: 100%;  /* Toma todo el ancho disponible */
+    max-width: 300px;  /* Máximo ancho para mantenerlo proporcional */
+    padding: 10px 15px;  /* Espaciado interno */
+    font-size: 14px;  /* Tamaño de fuente */
+    border: 1px solid #ccc;  /* Borde de color gris claro */
+    border-radius: 25px;  /* Bordes redondeados */
+    background-color: #f9f9f9;  /* Color de fondo sutil */
+    color: #333;  /* Color del texto */
+    transition: all 0.3s ease;  /* Transición para el enfoque */
+    outline: none;  /* Elimina el borde por defecto al hacer clic */
+}
+
+#searchBar:focus {
+    border-color: #007bff;  /* Borde azul cuando está en foco */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);  /* Sombra azul al enfocarse */
+}
+
+/* Estilo para los placeholders */
+#searchBar::placeholder {
+    color: #aaa;  /* Color de los placeholders */
+    font-style: italic;  /* Estilo en cursiva para los placeholders */
+}
+
+
+    </style>
+    
+</head>
+<body>
+    <!-- Pantalla Estudiante -->
+    <div class="container">
+        <h1>Bienvenido, Estudiante</h1>
+        <input type="text" id="searchBar" placeholder="Buscar por nombre de clase">
+
+        
+        <!-- Tabla de Materias -->
+        <table id="tablaMaterias">
+            <thead>
+                <tr>
+                    <th>Materia</th>
+                    <th>Docente</th>
+                    <th>Día</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                    <th>Aula</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Las filas se generarán dinámicamente -->
+            </tbody>
+        </table>
+        
+        <!-- Tabla de Horario -->
+        <h2>Horario</h2>
+        <table id="tablaHorario">
+            <thead>
+                <tr>
+                    <th>Hora</th>
+                    <th>Lunes</th>
+                    <th>Martes</th>
+                    <th>Miércoles</th>
+                    <th>Jueves</th>
+                    <th>Viernes</th>
+                    <th>Sábado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Inicialmente vacío -->
+            </tbody>
+        </table>
+        
+        <button class="logout" onclick="logout()">Cerrar Sesión</button>
+        <button class="btn-eliminar" onclick="reiniciarHorario()">Reiniciar Horario</button>
+
+    </div>
+
+    <script>
+       
+
+       // Función para generar la tabla de horario con las horas fijas
+function generarHorario() {
+    const tbody = document.querySelector("#tablaHorario tbody");
+    tbody.innerHTML = ""; // Limpiar antes de generar
+
+    // Usar las horas fijas definidas
+    HORAS_ESTABLECIDAS.forEach(hora => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${hora}</td>
+            <td></td> <!-- Lunes -->
+            <td></td> <!-- Martes -->
+            <td></td> <!-- Miércoles -->
+            <td></td> <!-- Jueves -->
+            <td></td> <!-- Viernes -->
+            <td></td> <!-- Sábado -->
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+
+        document.addEventListener("DOMContentLoaded", function () { 
+    cargarClases(); // Cargar las clases del docente
+    cargarHorario(); // Cargar el horario almacenado
+});
+
+
+//  se implementa una funcionalidad de búsqueda en tiempo real para filtrar las filas
+document.addEventListener("DOMContentLoaded", function () {
+    const searchBar = document.getElementById("searchBar");
+    const tableRows = document.querySelectorAll("#tablaMaterias tbody tr");
+
+    searchBar.addEventListener("input", function () {
+        const searchValue = this.value.toLowerCase();
+
+        tableRows.forEach(row => {
+            const subjectCell = row.querySelector("td:nth-child(1)");  // Filtramos por la columna de "Materia" (primera columna)
+            if (subjectCell) {
+                const subjectName = subjectCell.textContent.toLowerCase();
+                row.style.display = subjectName.includes(searchValue) ? "" : "none";  // Muestra u oculta la fila
+            }
+        });
+    });
+});
+
+
+
+// Función para cargar las clases desde localStorage
+function cargarClases() {
+    const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+    const tbody = document.querySelector("#tablaMaterias tbody");
+    tbody.innerHTML = ""; // Limpiar la tabla antes de cargar
+
+    clases.forEach((clase, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+    <td>${clase.materia}</td>
+    <td>${clase.docente}</td>
+    <td>${clase.dia}</td>
+    <td>${clase.horaInicio}</td>
+    <td>${clase.horaFin}</td>
+    <td>${clase.aula}</td>
+    <td>
+        <div class="boton-contenedor">
+            <button class="btn-agregar" onclick="agregarClaseAlHorario(${index})">Agregar Clase</button>
+            <button class="btn-eliminar" onclick="eliminarClaseDelHorario(${index})">Eliminar</button>
+        </div>
+    </td>
+`;
+
+
+        tbody.appendChild(row);
+    });
+}
+
+// Función para agregar una clase al horario
+function agregarClaseAlHorario(index) {
+    const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+    const clase = clases[index];
+
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const tbody = document.querySelector("#tablaHorario tbody");
+
+    // Obtén todas las horas entre la horaInicio y la horaFin
+    const horasClase = generarRangoDeHoras(clase.horaInicio, clase.horaFin);
+
+    horasClase.forEach(hora => {
+        let fila = Array.from(tbody.querySelectorAll("tr")).find(fila => fila.firstElementChild.textContent.trim() === hora);
+
+        if (!fila) {
+            fila = crearFilaHorario(hora, dias.length);
+            tbody.appendChild(fila); // Agregar fila si no existe
+        }
+
+        agregarMateriaACelda(fila, { ...clase, horaInicio: hora }, dias);
+    });
+
+    // Ordenar las filas por la hora después de agregar
+    ordenarFilasHorario();
+
+    guardarHorario(); // Actualizar localStorage
+}
+
+
+
+
+// Función para ordenar las filas del horario por la hora
+function ordenarFilasHorario() {
+    const tbody = document.querySelector("#tablaHorario tbody");
+    const filas = Array.from(tbody.querySelectorAll("tr"));
+
+    filas.sort((filaA, filaB) => {
+        const horaA = convertirHoraANumero(filaA.firstElementChild.textContent.trim());
+        const horaB = convertirHoraANumero(filaB.firstElementChild.textContent.trim());
+        return horaA - horaB;
+    });
+
+    // Vaciar el tbody y volver a agregar las filas ordenadas
+    tbody.innerHTML = "";
+    filas.forEach(fila => tbody.appendChild(fila));
+}
+
+// Función para convertir una hora (formato HH:mm) a un número para comparar
+function convertirHoraANumero(hora) {
+    const [horas, minutos] = hora.split(":").map(Number);
+    return horas + minutos / 60; // Ejemplo: 7:30 -> 7.5
+}
+
+
+function reiniciarHorario() {
+    // Obtener el cuerpo de la tabla de horario
+    const tbody = document.querySelector("#tablaHorario tbody");
+
+    // Limpiar todas las filas
+    tbody.innerHTML = "";
+
+    // Eliminar los datos del horario de localStorage
+    localStorage.removeItem("horario");
+
+    // Regenerar la tabla con las horas iniciales (si corresponde)
+    generarHorario();
+
+    alert("El horario ha sido reiniciado.");
+}
+
+
+
+// Función para generar un rango de horas en formato "HH:mm"
+function generarRangoDeHoras(horaInicio, horaFin) {
+    const rango = [];
+    let [horaActual, minutosActuales] = horaInicio.split(":").map(Number);
+    const [horaFinInt, minutosFinInt] = horaFin.split(":").map(Number);
+
+    while (horaActual < horaFinInt || (horaActual === horaFinInt && minutosActuales <= minutosFinInt)) {
+        const horaFormateada = `${horaActual.toString().padStart(2, "0")}:${minutosActuales.toString().padStart(2, "0")}`;
+        rango.push(horaFormateada);
+
+        minutosActuales += 60; // Suma una hora
+        if (minutosActuales >= 60) {
+            minutosActuales -= 60;
+            horaActual++;
+        }
+    }
+
+    return rango;
+}
+
+function eliminarClaseDelHorario(index) {
+    const clases = JSON.parse(localStorage.getItem("clases") || "[]");
+    const clase = clases[index];
+
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+    // Actualizar el almacenamiento local eliminando la clase del horario
+    const horario = JSON.parse(localStorage.getItem("horario") || "[]");
+    const horaInicioClase = convertirHoraANumero(clase.horaInicio);
+    const horaFinClase = convertirHoraANumero(clase.horaFin);
+
+    // Eliminar las celdas correspondientes al rango de horas y día de la clase
+    horario.forEach(fila => {
+        const horaFila = convertirHoraANumero(fila.hora);
+        if (horaFila >= horaInicioClase && horaFila <= horaFinClase) {
+            const diaIndex = dias.indexOf(clase.dia);
+            if (diaIndex >= 0) {
+                fila.dias[diaIndex] = ""; // Limpiar la celda correspondiente
+            }
+        }
+    });
+
+    // Guardar el horario actualizado en localStorage
+    localStorage.setItem("horario", JSON.stringify(horario));
+
+    // Regenerar la tabla del horario para corregir desorden
+    cargarHorario();
+
+    alert(`Clase "${clase.materia}" eliminada del horario.`);
+}
+
+
+
+
+// Función para crear una nueva fila de horario
+function crearFilaHorario(hora, diasCount) {
+    const fila = document.createElement("tr");
+
+    const celdaHora = document.createElement("td");
+    celdaHora.textContent = hora;
+    fila.appendChild(celdaHora);
+
+    for (let i = 0; i < diasCount; i++) {
+        const celdaDia = document.createElement("td");
+        fila.appendChild(celdaDia);
+    }
+
+    return fila;
+}
+
+// Función para agregar la materia a la celda correspondiente
+function agregarMateriaACelda(fila, clase, dias) {
+    // Obtener el índice del día en la fila (sumar 1 porque el índice 0 es para la hora)
+    const diaIndex = dias.indexOf(clase.dia) + 1;
+
+    // Verificar si el índice es válido y que la celda exista
+    if (diaIndex > 0 && diaIndex < fila.children.length) {
+        const celda = fila.children[diaIndex];
+
+        // Verificar si la celda está vacía
+        if (!celda.textContent.trim()) {
+            // Formatear el contenido con saltos de línea y estilos
+            celda.innerHTML = `
+                <strong>${clase.materia}</strong><br>
+                <span style="font-size: 12px; color: #555;">
+                    ${clase.docente}<br>
+                    <a href="${clase.aula}" target="_blank" style="text-decoration: none; color: #007bff;">
+                        ${clase.aula}
+                    </a>
+                </span>`;
+            // Aplicar un fondo visual para la celda
+            celda.style.backgroundColor = "#dff0d8";
+        } else {
+            alert("Ya hay una clase en esta franja horaria.");
+        }
+    } else {
+        alert("El día especificado no es válido.");
+    }
+}
+
+
+// Función para guardar el horario en localStorage
+function guardarHorario() {
+    const horario = [];
+    const filas = document.querySelectorAll("#tablaHorario tbody tr");
+
+    filas.forEach(fila => {
+        const hora = fila.firstElementChild.textContent.trim();
+        const dias = Array.from(fila.children).slice(1).map(celda => celda.textContent.trim());
+        horario.push({ hora, dias });
+    });
+
+    localStorage.setItem("horario", JSON.stringify(horario));
+}
+
+// Función para cargar el horario desde localStorage
+function cargarHorario() {
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const tbody = document.querySelector("#tablaHorario tbody");
+    tbody.innerHTML = ""; // Limpiar tabla
+
+    const horario = JSON.parse(localStorage.getItem("horario") || "[]");
+
+    horario.forEach(fila => {
+        const nuevaFila = crearFilaHorario(fila.hora, dias.length);
+
+        fila.dias.forEach((materia, index) => {
+            if (materia) {
+                const celda = nuevaFila.children[index + 1];
+                celda.textContent = materia;
+                celda.style.backgroundColor = "#dff0d8";
+            }
+        });
+
+        tbody.appendChild(nuevaFila);
+    });
+}
+
+       // Función para cerrar sesión
+function logout() {
+    const confirmLogout = confirm("¿Estás seguro de que deseas cerrar sesión?");
+    if (confirmLogout) {
+        alert("Has cerrado sesión correctamente.");
+        // Redirigir a la página de inicio de sesión (login.html)
+        window.location.href = "login.html";
+    } else {
+        // Si cancelan, no se realiza ninguna acción
+        alert("Cierre de sesión cancelado.");
+    }
+}
+
+    </script>
+</body>
+</html>
